@@ -1,8 +1,4 @@
-# Cache objects
-packer_cache/
-
-# Crash log
-crash.log
-
-# For built boxes
-*.box
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
