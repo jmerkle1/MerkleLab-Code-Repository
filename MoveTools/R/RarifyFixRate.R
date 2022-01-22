@@ -138,6 +138,10 @@ RarifyFixRate <- function(data = data,
 
   print(paste0("Your new median fix rate is approximately ", round(median(dt, na.rm=T),1), " hours!"))
 
+  goods <- dt <= ideal.fix.interval+fix.interval.var & dt >= ideal.fix.interval-fix.interval.var
+
+  print(paste0("You have ", sum(goods)," steps within your variation in your ideal fix interval. This represents approximately ", mean(goods), "% of your data."))
+
   return(orig[rows2keep,])  # return only the rows of the origional dataframe
 
 } #end of RarifyFixRate function
