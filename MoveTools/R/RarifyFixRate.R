@@ -1,6 +1,6 @@
 #' Rarify GPS collar point data
 #'
-#' This function takes a dataset of animal locations and subsets it to the step interval of interest.  It will maximize the number of steps available at the ideal fix rate.  It can deal with complicated collar schedules. Written by Jerod Merkle. Last updated January 2021.
+#' This function takes a dataset of animal locations and subsets it to the step interval of interest.  It will maximize the number of steps available at the ideal fix rate.  It can deal with complicated collar schedules. Written by Jerod Merkle (with help from Tayler LaSharr). Last updated January 2022.
 #'
 #' @param data An ordered dataframe or sf POINT dataframe with a posix column and a burst or animal id column
 #' @param burst_name A character specifying the name of the column representing burst from CalcBurst, or simply animal id.
@@ -67,13 +67,10 @@ RarifyFixRate <- function(data = data,
 
   # some check to see how many diffs are actually possibly within that range.
   #perhaps someone specified an ideal fix interval that is too small for the data
-
   data$date1234 <- as.numeric(data$date1234)/3600  # turn date column into hours
-
   dt <- diff(data$date1234)  # a quick calculation of the date differences
   flags <- c(diff(data$id1234),1)   # identify when bursts switch
   dt[flags == 1] <- NA  # add NA when burst switches
-
   if(mean(dt>ideal.fix.interval, na.rm=T) > 0.50)
     print("Warning! More than half of your current fix interval is already larger than your ideal.fix.interval! Thus, this function will not remove many points, if any.")
   rm(dt, flags)
@@ -131,17 +128,13 @@ RarifyFixRate <- function(data = data,
   }))
   parallel::stopCluster(clust)   # you must stop the parallelization process
 
-
+  # Finish up by printing out some info about the results
   print(paste0("You removed ", round((1-length(rows2keep)/nrow(orig))*100,1), "% of your data!"))
-
   dt <- diff(data$date1234[rows2keep])  # a quick calculation of the date differences
-
   print(paste0("Your new median fix rate is approximately ", round(median(dt, na.rm=T),1), " hours!"))
-
   goods <- dt <= ideal.fix.interval+fix.interval.var & dt >= ideal.fix.interval-fix.interval.var
-
   print(paste0("You have ", sum(goods, na.rm=T)," steps at your ideal fix interval (including fix interval variation). This represents approximately ", round(mean(goods, na.rm=TRUE)*100,1), "% of your data."))
 
-  return(orig[rows2keep,])  # return only the rows of the origional dataframe
+  return(orig[rows2keep,])  # return only the kept rows of the original dataframe
 
 } #end of RarifyFixRate function
