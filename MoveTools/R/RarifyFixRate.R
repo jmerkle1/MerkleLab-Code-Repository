@@ -1,17 +1,17 @@
 #' Rarify GPS collar point data
 #'
-#' This function takes a dataset of animal locations and subsets it to the step interval of interest.  It will maximize the number of steps available at the ideal fix rate.  It can deal with complicated collar schedules.Written by Jerod Merkle. Last updated January 2021.
+#' This function takes a dataset of animal locations and subsets it to the step interval of interest.  It will maximize the number of steps available at the ideal fix rate.  It can deal with complicated collar schedules. Written by Jerod Merkle. Last updated January 2021.
 #'
 #' @param data An ordered dataframe or sf POINT dataframe with a posix column and a burst or animal id column
 #' @param burst_name A character specifying the name of the column representing burst from CalcBurst, or simply animal id.
 #' @param date_name  A character specifying the name of the column representing date and time stamps of the locations.
 #' @param ideal.fix.interval Your ideal fix rate in hours
 #' @param fix.interval.var Variation (in hours) around your ideal fix interval that you are willing to allow.
-#' @param maximize.pts Do you want to maxmimize the number of fixes with your idea fix interval? If TRUE, you will also have many fixes that are less than your ideal fix interval.
+#' @param maximize.pts Do you want to maxmimize the number of fixes with your idea fix interval? If TRUE, you will also have many fixes that are less than your ideal fix interval, but you'll have more at your ideal fix interval.
 #' @param max.cpus Maximum number of cpus you want this function to use during the parallelization process. Default is detectCores()-1
 
 #'
-#' @return Returns the same data.frame entered with the addition of the following columns: dist (distance between steps in meters), dt (time elapsed bewteen steps in seconds), speed (meters/second), abs.angle (angle moved relative no north, in degrees), rel.angle (angle moved relative to the direction of the previous step, in degrees), and StepFlag (logical, denoting whether a step is connected and has all movement params calculated)
+#' @return Returns a the same dataframe entered but rarified (less rows) based on parameters.
 #'
 #' @examples
 #' # To come
