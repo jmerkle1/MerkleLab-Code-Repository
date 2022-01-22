@@ -140,7 +140,7 @@ RarifyFixRate <- function(data = data,
 
   goods <- dt <= ideal.fix.interval+fix.interval.var & dt >= ideal.fix.interval-fix.interval.var
 
-  print(paste0("You have ", sum(goods, na.rm=T)," steps within your variation in your ideal fix interval. This represents approximately ", mean(goods, na.rm=TRUE), "% of your data."))
+  print(paste0("You have ", sum(goods, na.rm=T)," steps at your ideal fix interval (including fix interval variation). This represents approximately ", round(mean(goods, na.rm=TRUE)*100,1), "% of your data."))
 
   return(orig[rows2keep,])  # return only the rows of the origional dataframe
 
