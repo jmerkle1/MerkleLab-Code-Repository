@@ -25,15 +25,15 @@ RarifyFixRate(
 
 \item{fix.interval.var}{Variation (in hours) around your ideal fix interval that you are willing to allow.}
 
-\item{maximize.pts}{Do you want to maxmimize the number of fixes with your idea fix interval? If TRUE, you will also have many fixes that are less than your ideal fix interval.}
+\item{maximize.pts}{Do you want to maxmimize the number of fixes with your idea fix interval? If TRUE, you will also have many fixes that are less than your ideal fix interval, but you'll have more at your ideal fix interval.}
 
 \item{max.cpus}{Maximum number of cpus you want this function to use during the parallelization process. Default is detectCores()-1}
 }
 \value{
-Returns the same data.frame entered with the addition of the following columns: dist (distance between steps in meters), dt (time elapsed bewteen steps in seconds), speed (meters/second), abs.angle (angle moved relative no north, in degrees), rel.angle (angle moved relative to the direction of the previous step, in degrees), and StepFlag (logical, denoting whether a step is connected and has all movement params calculated)
+Returns a the same dataframe entered but rarified (less rows) based on parameters.
 }
 \description{
-This function takes a dataset of animal locations and subsets it to the step interval of interest.  It will maximize the number of steps available at the ideal fix rate.  It can deal with complicated collar schedules.Written by Jerod Merkle. Last updated January 2021.
+This function takes a dataset of animal locations and subsets it to the step interval of interest.  It will maximize the number of steps available at the ideal fix rate.  It can deal with complicated collar schedules. Written by Jerod Merkle (with help from Tayler LaSharr). Last updated January 2022.
 }
 \examples{
 # To come
