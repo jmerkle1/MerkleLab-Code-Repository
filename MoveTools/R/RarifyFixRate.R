@@ -65,6 +65,9 @@ RarifyFixRate <- function(data = data,
   if(any(duplicated(data[c("id1234", "date1234")])) == TRUE)
     stop("You have duplicate burst_dates in your database!")
 
+  # turn id into a numeric column
+  data$id1234 <- as.numeric(as.factor(as.character(data$id1234)))
+
   # some check to see how many diffs are actually possibly within that range.
   #perhaps someone specified an ideal fix interval that is too small for the data
   data$date1234 <- as.numeric(data$date1234)/3600  # turn date column into hours
