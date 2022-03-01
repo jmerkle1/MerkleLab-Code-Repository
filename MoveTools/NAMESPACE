@@ -3,6 +3,7 @@
 export(CalcBurst)
 export(CalcKfoldCV)
 export(CalcMovParams)
+export(CalcQIC)
 export(Check4Morts)
 export(DrawRandSteps_emperical)
 export(DrawRandSteps_parametric)
