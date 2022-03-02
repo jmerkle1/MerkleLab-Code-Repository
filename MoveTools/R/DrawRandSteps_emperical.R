@@ -177,9 +177,12 @@ DrawRandSteps_emperical <- function(data=data,
   temp2 <- temp[temp$case==1, c("strata","dt","StepFlag",extr_col_nms)]
   temp$dt <- NULL
   temp$StepFlag <- NULL
-  for(i in 1:length(extr_col_nms)){
-    temp[,extr_col_nms[i]] <- NULL
+  if(length(extr_col_nms)>0){
+    for(i in 1:length(extr_col_nms)){
+      temp[,extr_col_nms[i]] <- NULL
+    }
   }
+
   temp <- merge(temp, temp2, all.x=TRUE)
   temp <- temp[order(temp[,id_name], temp[,date_name], temp$case, decreasing = F),]
 
