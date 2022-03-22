@@ -2,6 +2,7 @@
 
 export(CalcBurst)
 export(CalcKfoldCV)
+export(CalcKfoldSSF)
 export(CalcMovParams)
 export(CalcQIC)
 export(Check4Morts)
