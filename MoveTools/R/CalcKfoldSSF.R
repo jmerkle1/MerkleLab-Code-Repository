@@ -149,7 +149,7 @@ CalcKfoldSSF <- function(
     ranks <- merge(ranks, obs.rks, all.x = TRUE)
     ranks$Freq[is.na(ranks$Freq)==TRUE] <- 0
 
-    return(data.frame(k=w, rho.spearman=cor(1:max(fold$rank),table(fold$rank[fold[,resp] == 1]),method="spearman"),
+    return(data.frame(k=w, rho.spearman=cor(ranks$ranks,ranks$Freq,method="spearman"),
                       prop.in.top.ranks.obs=sum(ranks$Freq[(nrow(ranks)-numb.top.ranks+1):nrow(ranks)])/sum(ranks$Freq),
                       prop.in.top.ranks.expected=numb.top.ranks/max(fold$rank)))
   }))
