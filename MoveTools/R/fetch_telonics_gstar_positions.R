@@ -98,6 +98,9 @@ fetch_telonics_gstar_positions <- function(
   # order by serial number and then by date
   fixes <- fixes[order(fixes$CollarSerialNumber, fixes$GPS.Fix.Time),]
 
+  # remove any rows with NAs in fix category
+  fixes <- fixes[is.na(fixes$GPS.Longitude)==FALSE,]
+
   # convert data to an sf object
   fixes <- sf::st_as_sf(fixes,
                         coords = c("GPS.Longitude", "GPS.Latitude"),
