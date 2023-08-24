@@ -26,12 +26,14 @@ fetch_telonics_iridium_positions <- function(
     #used to be 10 instead of 35  
 ){
   
-  if(all(c("processx","sf") %in% installed.packages()[, 1]) == FALSE)
+  if(all(c("processx","sf","readr","dplyr") %in% installed.packages()[, 1]) == FALSE)
     stop("You must install the following packages: processx and sf")
   
   # get packages aligned
   require(processx)
   require(sf)
+  require(dplyr)
+  require(readr)
   
   # some tests
   if(length(dir(fldr_out))>0)
@@ -65,43 +67,32 @@ fetch_telonics_iridium_positions <- function(
   
   print("Importing CSV files")
   #Import the csv files from batch ####
-  # Create a list of the data you will import
-  fls <- list.files(fldr_reports, "Condensed.csv$")
-  
-  ## Run a loop that goes over the list, cleans and merges the data
-  # Create an empty data frame where all the individuals will be merged in
-  fixes <- do.call(rbind, lapply(1:length(fls), function(i){
-    # The skip parameter is because there is some meta information above where the recordings begin
-    df.i = read.csv(paste0(fldr_reports,"/",fls[i]), skip = 22, header = TRUE)
-    
-    # Get the ID and add it as a column (I am using the name the file is saved under and extracting the
-    # component that will match with the way it is saved in my meta data column)
-    df.i$CollarSerialNumber <- substr(fls[i], 1, 7)
-    
-    # Isolate the cases with a successful fix attempt
-    df.i <- df.i[which(df.i$GPS.Fix.Attempt=="Succeeded"),]
-    
-    print(paste0(nrow(df.i), " rows of data importanted for individual: ", substr(fls[i], 1, 7)))
-    
-    # Work on the DateTime stamp. It is a character string so I will first convert it to POSIXct
-    # I always try to avoid deleting raw data (you never know when you will need it) so I will create a new DateTime Column
-    df.i$Acquisition.Time = as.POSIXct(df.i$Acquisition.Time, format="%Y.%m.%d %H:%M:%S", tz = "UTC")
-    
-    
+
+  fixes<-readr::read_csv(list.files(fldr_reports, "Condensed.csv$", full.names = TRUE), 
+                         col_select = c("Acquisition Time", 
+                                        "GPS Fix Attempt", 
+                                        "GPS Latitude", 
+                                        "GPS Longitude"),
+                         id = 'CollarSerialNumber', 
+                         skip = 22, 
+                         show_col_types = FALSE,
+                         ) %>% 
+    dplyr::mutate(CollarSerialNumber = substr(CollarSerialNumber, nchar(CollarSerialNumber)-20, nchar(CollarSerialNumber)-14)) %>% 
+    dplyr::filter(`GPS Fix Attempt` == 'Succeeded') %>% 
+    dplyr::mutate(`Acquisition Time` = as.POSIXct(`Acquisition Time`, format="%Y.%m.%d %H:%M:%S", tz = "UTC"))
+
     if(is.null(start_date)==FALSE){
       # reduce to specified start date
-      df.i <- df.i[df.i$Acquisition.Time >= start_date,]
+      fixes <- fixes %>% 
+        filter(`Acquisition Time` >= start_date)
     }
-    
-    return(df.i)
-  }))
   
   # order by serial number and then by date
-  fixes <- fixes[order(fixes$CollarSerialNumber, fixes$Acquisition.Time),]
+  fixes <- fixes[order(fixes$CollarSerialNumber, fixes$`Acquisition Time`),]
   
   # convert data to an sf object
   fixes <- sf::st_as_sf(fixes,
-                        coords = c("GPS.Longitude", "GPS.Latitude"),
+                        coords = c("GPS Longitude", "GPS Latitude"),
                         crs = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
   
   # remove all the temporary files if keep.reports = FALSE
