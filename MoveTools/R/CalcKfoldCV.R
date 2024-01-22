@@ -13,9 +13,10 @@
 #' @param TMBtheta  Number of training and testing bins to use. Default = 5.
 #' @param TMBmaparg  The value to pass along to "TMBStruc$mapArg" both when setting of the funtion and before fitting. This argument is used for the Muff et al (2020) method to fit conditional mixed effects models. Seems to be necessary to get "predict" to work when setting the variance structure manually for this method.
 #' @param update  Whether function should update on it's progress. Default is T
+#' @param numb.top.bins  How many top bins to include in the calculate of proportion of used points (in testing dataset) falling in top bins. Defaults to 1, which is the top bin out of 10.
 #'
 #'
-#' @return Returns a vector of cross-validation scores (i.e., spearman rank correlations) for each fold. Uses the area-adjusted frequency of categories (bins). See Boyce et al. 2002 for details.
+#' @return Returns a vector of cross-validation scores (i.e., spearman rank correlations) for each fold. Uses the area-adjusted frequency of categories (bins). See Boyce et al. 2002 for details. Also provides the proportion of used points of the testing data that fall in the top bins (specified by numb.top.bins) identified from the quantiles of available data in the testing dataset, as well as the number of available points in the top bins.
 #'
 #' @examples
 #' #To come
@@ -25,15 +26,16 @@
 CalcKfoldCV<-function(
   data,
   formula,
-  modType=glmer,
+  modType="glmer",
   binVar,
   k=5,
   resp="Pres",
   modFam="binomial",
-  setSeed=T,
+  setSeed=FALSE,
   TMBtheta=NULL,
   TMBmaparg=NULL,
-  update=T
+  update=TRUE,
+  numb.top.bins=1
 )
 {
   x<-1:length(unique(eval(parse(text=paste("data$",binVar,sep="")))))
@@ -44,7 +46,7 @@ CalcKfoldCV<-function(
   newdata <- data.frame(binVar = unique(eval(parse(text=paste("data$",binVar,sep="")))))
   if(setSeed==T){
     set.seed(k)
-  }else{}
+  }
 
   random_sample <- data.frame(binVar = sample(newdata$binVar,
                                               length(unique(eval(parse(text=paste("data$",binVar,sep="")))))))
@@ -58,9 +60,7 @@ CalcKfoldCV<-function(
 
   if(update==T){
     print("Fitting the models. On fold: ")
-  }else{
   }
-
 
   if(modType=="glmer"){
     require(lme4)
@@ -133,9 +133,7 @@ CalcKfoldCV<-function(
 
   if(update==T){
     print("Predicting values")
-  }else{
   }
-
 
   for(i in 1:k){
     data$RSFscores[data$rand.vec == i]<-exp(predict(eval(parse(text=paste("Mod",i,sep=""))),
@@ -143,20 +141,18 @@ CalcKfoldCV<-function(
                                                     allow.new.levels=T))
     if(update==T){
       print(i)
-    }else{
-
     }
-
   }
 
 
   # Run the k-fold CV evaluation sensu Boyce et al. 2002
   dataset <- data[complete.cases(data[,"RSFscores"]),]
-  rho_model <- numeric(k) ## it will store Spearman's coefficients
 
-  for (w in 1:k){
+  toreturn <- do.call(rbind, lapply(1:k, function(w){
     fold <- subset(dataset,rand.vec==unique(dataset$rand.vec)[w])
-    q.pp <- quantile(fold$RSFscores,probs=seq(0,1,.1)) ## computing quantiles of RSF scores
+    # grab the quantile of the RSF scores from the available data points
+    q.pp <- quantile(fold$RSFscores[eval(parse(text=paste("fold$",resp,sep="")))==0],
+                     probs=seq(0,1,.1)) ## computing quantiles of RSF scores
     bin <- rep(NA,length(fold$RSFscores))
     for (j in 1:10){
       bin[fold$RSFscores>=q.pp[j]& fold$RSFscores<q.pp[j+1]] = j  ## binning RSF scores (10 bins)
@@ -166,12 +162,17 @@ CalcKfoldCV<-function(
     a <- table(used,bin) ## area adjusted freq in used/available for each bin
     a <- t(a) #transpose the table
     a <- as.data.frame.matrix(a) ## the next few lines compute area-adjusted frequency of categories (bins) of RSF scores
+    names(a) <- c("avail","used")
     a$areaadjusted <- rep(NA,length(10))
     sum0 <- sum(a[,1])
     sum1 <- sum(a[,2])
     a$areaadjusted <- (a[,2] / sum1 ) / (a[,1] / sum0)
     a$bins <- seq(1,10,by=1);a
-    rho_model[w] <- with(a,cor.test(bins,areaadjusted,method="spearm"))$estimate
-  }
-  return(rho_model)
+    
+    return(data.frame(k=w,
+                      rho.spearman=with(a,cor.test(bins,areaadjusted,method="spearm"))$estimate,
+                      prop.in.top.bins.obs=sum(a$used[(nrow(a)-numb.top.bins+1):nrow(a)])/sum(a$used),
+                      prop.in.top.bins.expected=sum(a$avail[(nrow(a)-numb.top.bins+1):nrow(a)])/sum(a$avail)))
+  }))
+  return(toreturn)
 }  #   END   ###################################
