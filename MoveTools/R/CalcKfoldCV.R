@@ -103,6 +103,7 @@ CalcKfoldCV<-function(
         }else{
           if(modType=="glmmTMB"){
             require(glmmTMB)
+            require(Matrix)
             for(i in 1:k){
               if(is.null(TMBmaparg)){
                 TMBStruc = glmmTMB(eval(parse(text=paste(formula))), family=modFam,doFit=FALSE,data[data$rand.vec != i,])
