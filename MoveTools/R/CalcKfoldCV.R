@@ -147,7 +147,7 @@ CalcKfoldCV<-function(
       print(i)
     }
   }
-
+  gc()  # clean out memory after removing the models
 
   # Run the k-fold CV evaluation sensu Boyce et al. 2002
   data <- data[complete.cases(data[,"RSFscores"]),]
