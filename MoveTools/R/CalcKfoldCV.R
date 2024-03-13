@@ -57,7 +57,9 @@ CalcKfoldCV<-function(
   }
 
   data <- merge(data, random_sample, by.x = binVar, by.y = "binVar", all.x = T )
-
+  rm(random_sample, newdata, spl, x)
+  gc()
+  
   if(update==T){
     print("Fitting the models. On fold: ")
   }
@@ -140,6 +142,7 @@ CalcKfoldCV<-function(
     data$RSFscores[data$rand.vec == i]<-exp(predict(eval(parse(text=paste("Mod",i,sep=""))),
                                                     newdata=subset(data,rand.vec == i), type="link",
                                                     allow.new.levels=T))
+    rm(list=paste("Mod",i,sep=""))  # remove the model to conserve memory
     if(update==T){
       print(i)
     }
@@ -147,10 +150,10 @@ CalcKfoldCV<-function(
 
 
   # Run the k-fold CV evaluation sensu Boyce et al. 2002
-  dataset <- data[complete.cases(data[,"RSFscores"]),]
+  data <- data[complete.cases(data[,"RSFscores"]),]
 
   toreturn <- do.call(rbind, lapply(1:k, function(w){
-    fold <- subset(dataset,rand.vec==unique(dataset$rand.vec)[w])
+    fold <- subset(data,rand.vec==unique(data$rand.vec)[w])
     # grab the quantile of the RSF scores from the available data points
     q.pp <- quantile(fold$RSFscores[eval(parse(text=paste("fold$",resp,sep="")))==0],
                      probs=seq(0,1,.1)) ## computing quantiles of RSF scores
